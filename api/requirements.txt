@@ -1,0 +1,12 @@
+python-multipart
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+passlib[bcrypt]
+python-jose
+pandas
+pyodbc
+python-dotenv
+streamlit
+openpyxl

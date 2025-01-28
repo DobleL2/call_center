@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  api_call_center:
+    build:
+      context: ./api
+    container_name: fastapi-container_call_center
+    volumes:
+      - ./api/local_database.sqlite:/app/local_database.sqlite:rw
+    ports:
+      - "8001:8000"  # Change the host port
+
+  ui_call_center:
+    build:
+      context: ./ui
+    container_name: ui-container_call_center
+    depends_on:
+      - api_call_center
+    ports:
+      - "8501:8501"
