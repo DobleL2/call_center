@@ -40,29 +40,30 @@ def get_next_record(user_id, current_record_id=None, current_cod_junta=None, res
         return record
     return None
 
-# Inicializar variables en session_state
-if "cod_junta" not in st.session_state:
-    st.session_state["cod_junta"] = None
-    
-if "respuesta" not in st.session_state:
-    st.session_state["respuesta"] = None    
 
-if "observaciones" not in st.session_state:
-    st.session_state["observaciones"] = None
-
-if "current_record" not in st.session_state:
-    st.session_state["current_record"] = None
-
-if "record_id" not in st.session_state:
-    st.session_state["record_id"] = None
-
-if "form_key" not in st.session_state:
-    st.session_state["form_key"] = 0
 
 def increment_form_key():
     st.session_state["form_key"] += 1
-    
+
 def run():
+    # Inicializar variables en session_state
+    if "cod_junta" not in st.session_state:
+        st.session_state["cod_junta"] = None
+        
+    if "respuesta" not in st.session_state:
+        st.session_state["respuesta"] = None    
+
+    if "observaciones" not in st.session_state:
+        st.session_state["observaciones"] = None
+
+    if "current_record" not in st.session_state:
+        st.session_state["current_record"] = None
+
+    if "record_id" not in st.session_state:
+        st.session_state["record_id"] = None
+
+    if "form_key" not in st.session_state:
+        st.session_state["form_key"] = 0
     if "auth_token" not in st.session_state or not st.session_state["auth_token"]:
         st.error("Debe iniciar sesión para tener acceso a esta pagina.")
         st.stop()
