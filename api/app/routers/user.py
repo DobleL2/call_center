@@ -362,6 +362,24 @@ def update_status( request: UpdateStatus,db:Session = Depends(get_db)):
     db.commit()
     return {"message": f"Record {cod_junta} marked as processed successfully."}
 
+class Change(BaseModel):
+    cod_junta: str
+    
+
+@router.post("/change_processing_rows")
+def change_processing_rows(request: Change,db:Session = Depends(get_db)):
+    # Marcar el registro como procesado
+    cod_junta = request.cod_junta
+    update_query = text(f"""
+        UPDATE data_processing
+        SET status = "unprocessed", assigned_to = NULL, assigned_at = NULL, processed_at = NULL
+        WHERE COD_JUNTA = {cod_junta}
+    """)
+    db.execute(update_query)
+    db.commit()
+    return {"message": f"Record {cod_junta} marked as processed successfully."}
+
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import MetaData, Table, Column, String, Integer, text
 from sqlalchemy.orm import Session
