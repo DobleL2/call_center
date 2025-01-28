@@ -20,7 +20,15 @@ def update_status(cod_junta,estado, observaciones):
     )
     return response.json()
 
+if "cod_junta" not in st.session_state:
+    st.session_state["cod_junta"] = None
+    
+if "respuesta" not in st.session_state:
+    st.session_state["respuesta"] = None    
 
+if "observaciones" not in st.session_state:
+    st.session_state["observaciones"] = None    
+    
 def run():
     if "auth_token" not in st.session_state or not st.session_state["auth_token"]:
         st.error("Debe iniciar sesión para tener acceso a esta pagina.")
@@ -34,13 +42,14 @@ def run():
         user_id = st.session_state['id']
 
         if st.button("Obtener Registro"):
-            if st.session_state['record_id'] != None:
+            if st.session_state['record_id'] != None and st.session_state['cod_junta'] != None:
+                update_status(str(st.session_state['cod_junta']),str(st.session_state['respuesta']),str(st.session_state['observaciones']))
                 mark_as_processed(int(st.session_state['record_id']), str(user_id))
             record = get_record(user_id)
             if record and 'data' in record:
                 st.session_state['record_id'] = record['record_id']
                 datos_demograficos, datos_respuestas = dividir_datos(record['data'])
-
+                st.session_state['cod_junta'] = datos_demograficos['cod_junta']
                 # Mostrar datos demográficos en 3 columnas
                 st.subheader("Datos")
                 columnas_demo = st.columns(3)
@@ -86,22 +95,11 @@ def run():
                     """,
                     unsafe_allow_html=True
                 )
-                with st.form("mi_formulario"):
-                    # Agregar un selectbox
-                    respuesta = st.selectbox('¿Contestó la llamada?', ['SI', 'NO', 'NO CONTESTA'])
-                    # Agregar un campo de texto para observaciones
-                    observaciones = st.text_input('Observaciones')
-                    
-                    # Botón para enviar el formulario
-                    submit = st.form_submit_button("Enviar")
 
-                # Llamar a la API si se envía el formulario
-                if submit:
-                    try:
-                        update_status(datos_demograficos['cod_junta'],respuesta,observaciones)
-                    except Exception as e:
-                        st.error("Error al conectar con la API.")
-                        st.write(e)
+                # Agregar un selectbox
+                st.session_state['respuesta'] = st.selectbox('¿Contestó la llamada?', ['SI', 'NO', 'NO CONTESTA'])
+                # Agregar un campo de texto para observaciones
+                st.session_state['observaciones'] = st.text_input('Observaciones')
                 
             else:
                 st.error("No hay registros disponibles.")

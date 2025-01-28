@@ -333,9 +333,18 @@ class MarkAsProcessedRequest(BaseModel):
     record_id: int
     user_id: str
 
+class UpdateStatus(BaseModel):
+    cod_junta: str
+    estado: str
+    observaciones: str
+
+
 @router.post("/update_status")
-def update_status( cod_junta:str,estado:str,observaciones:str,db:Session = Depends(get_db)):
+def update_status( request: UpdateStatus,db:Session = Depends(get_db)):
     # Marcar el registro como procesado
+    cod_junta = request.cod_junta
+    estado = request.estado
+    observaciones = request.observaciones
     update_query = text(f"""
         UPDATE mi_tabla_desde_excel
         SET ESTADO = "{estado}"
