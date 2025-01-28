@@ -49,8 +49,8 @@ import streamlit as st
 from modules import *
 
 ROLE_PAGES = {
-    "super_admin": ["Cargar Datos", "Borrar Datos","Crear Usuarios","Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"],
-    "admin": ["Cargar Datos","Crear Usuarios","Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"],
+    "super_admin": ["Crear Usuarios"], #"Cargar Datos", "Borrar Datos",,"Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"
+    "admin": ["Crear Usuarios"],#"Cargar Datos",,"Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"
     "user": ["Procesar Registros"],
     "guest": []
 }
