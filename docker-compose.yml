@@ -7,7 +7,7 @@ services:
     volumes:
       - ./api/local_database.sqlite:/app/local_database.sqlite:rw
     ports:
-      - "8001:8000"  # Change the host port
+      - "8003:8003"  # Change the host port
 
   ui_call_center:
     build:
@@ -16,4 +16,4 @@ services:
     depends_on:
       - api_call_center
     ports:
-      - "8501:8501"
+      - "8503:8503"
