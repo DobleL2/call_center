@@ -22,6 +22,46 @@ def read_user():
 def home():
     return {"holi": "fakeuser"}
 
+class UpdateUserRequest(BaseModel):
+    fullname: str = None
+    password: str = None
+
+@router.put("/users/{username}/update")
+def update_user(username: str, request: UpdateUserRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint para actualizar el fullname y/o contraseña de un usuario.
+    
+    Args:
+        username (int): ID del usuario que se desea actualizar.
+        request (UpdateUserRequest): Datos opcionales a actualizar (fullname, password).
+        db (Session): Sesión de la base de datos.
+        
+    Returns:
+        dict: Confirmación de la operación.
+    """
+    # Obtener al usuario de la base de datos
+    user = db.query(User).filter(User.username == username,User.role!='super_admin',User.role!='admin').first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    # Verificar qué campos se enviaron en la solicitud y actualizarlos
+    if request.fullname is not None:
+        user.full_name = request.fullname
+    if request.password is not None:
+        user.hashed_password = hash_password(request.password)
+    
+    # Si no se enviaron datos, lanzar una excepción
+    if request.fullname is None and request.password is None:
+        raise HTTPException(status_code=400, detail="No data provided to update.")
+    
+    # Guardar los cambios
+    try:
+        db.commit()
+        return {"message": f"User {username} updated successfully."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating user: {e}")
+
 @router.get("/update_db")
 def update_db():
     try:
@@ -29,6 +69,35 @@ def update_db():
         return {"response": "db updated"}
     except Exception as e:
         return {"response": f"An error occurred: {e}"}
+
+
+@router.get("/dataset_status_information/")
+def get_dataset_status_information(dataset:str,db:Session= Depends(get_db)):
+    query = text(f"""
+                SELECT full_name,username,d.*
+                FROM {dataset} d
+                LEFT JOIN users u ON u.id = d.assigned_to
+                 """)
+    existing_record = db.execute(query).mappings().fetchall()
+    return {
+        "results": existing_record
+    }
+
+@router.get("/dataset_general_information/")
+def get_dataset_status_information(db:Session= Depends(get_db)):
+    query = text(f"""
+                WITH cte AS (
+                    SELECT COD_JUNTA, ESTADO,OBSERVACION
+                    FROM mi_tabla_desde_excel
+                )
+                SELECT *
+                FROM data_estrategas d
+                JOIN cte AS c ON c.COD_JUNTA = d.cod_junta
+                 """)
+    existing_record = db.execute(query).mappings().fetchall()
+    return {
+        "results": existing_record
+    }
 
 @router.get("/update_table_excel")
 def update_table_excel():
@@ -347,7 +416,7 @@ def update_status( request: UpdateStatus,db:Session = Depends(get_db)):
     observaciones = request.observaciones
     update_query = text(f"""
         UPDATE mi_tabla_desde_excel
-        SET ESTADO = "{estado}"
+        SET ESTADO = "{estado}",OBSERVACION = "{observaciones}"
         WHERE COD_JUNTA = {cod_junta}
     """)
     db.execute(update_query)
@@ -373,6 +442,13 @@ def change_processing_rows(request: Change,db:Session = Depends(get_db)):
     update_query = text(f"""
         UPDATE data_processing
         SET status = "unprocessed", assigned_to = NULL, assigned_at = NULL, processed_at = NULL
+        WHERE COD_JUNTA = {cod_junta}
+    """)
+    db.execute(update_query)
+    db.commit()
+    update_query = text(f"""
+        UPDATE mi_tabla_desde_excel
+        SET ESTADO = NULL ,OBSERVACION = NULL
         WHERE COD_JUNTA = {cod_junta}
     """)
     db.execute(update_query)

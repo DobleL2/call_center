@@ -49,8 +49,8 @@ import streamlit as st
 from modules import *
 
 ROLE_PAGES = {
-    "super_admin": ["Crear Usuarios"], #"Cargar Datos", "Borrar Datos",,"Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"
-    "admin": ["Crear Usuarios"],#"Cargar Datos",,"Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"
+    "super_admin": ["Crear Usuarios","Modificar datos usuario","Estado de Procesamiento","Reporte General","Cambiar Estado Registro"], #"Cargar Datos", "Borrar Datos",,"Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"
+    "admin": ["Crear Usuarios","Modificar datos usuario","Estado de Procesamiento","Reporte General","Cambiar Estado Registro"],#"Cargar Datos",,"Modificar datos usuario","Seleccionar Datos","Resumen de usuarios","Estado de Procesamiento","Buscar Registros"
     "user": ["Procesar Registros"],
     "guest": []
 }
@@ -69,6 +69,18 @@ if "auth_token" in st.session_state and st.session_state["auth_token"]:
     elif selected_page == "Crear Usuarios":
         import modules.create_user as create_user
         create_user.run()
+    elif selected_page == "Cambiar Estado Registro":
+        import modules.unprocess as unprocess
+        unprocess.run()
+    elif selected_page == "Reporte General":
+        import modules.data_general as data_general
+        data_general.run()
+    elif selected_page == "Modificar datos usuario":
+        import modules.update_user as update_user
+        update_user.run()
+    elif selected_page == "Estado de Procesamiento":
+        import modules.data_information as data_information
+        data_information.run()
         
     # if selected_page == "Cargar Datos":
     #     import modules.upload_and_create_table as upload_page

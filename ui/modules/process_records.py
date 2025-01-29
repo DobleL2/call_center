@@ -106,8 +106,8 @@ def run():
                     ['SI', 'NO', 'NO CONTESTA']
                 )
                 
-                observaciones = st.text_input('Observaciones')
-                
+                observaciones = st.selectbox('Observaciones',['NO DESEA','MENOR DE EDAD','POR TRABAJO','POR SALUD','EQUIVOCADO','SUSPENDIDO','SIN NUMERO','VOLVER A LLAMAR','OTROS'])
+                    
                 if st.form_submit_button("Guardar y Siguiente"):
                     next_record = get_next_record(
                         user_id,
