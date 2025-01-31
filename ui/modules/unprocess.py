@@ -46,6 +46,17 @@ def run():
             #else:
             #    st.write("Avisar a soporte")
         
+        def unprocess_no_contestaron():
+            response = requests.post(f"{API_BASE_URL}/change_processing_rows_no_contestaron/")
+            if response.status_code == 200:
+                st.success("Todos los registros que estaban marcados como no contestaron volvieron a la cola")  
+            else:
+                st.warning("No se pudo volver a la cola a registros que no contestaron")
+            return response.json()
+        st.header("Regresar todos los registros que no contestaron a la cola")
+        if st.button("Poner todos los que no contestaron como no procesados"):
+            response = unprocess_no_contestaron()
+
         
 def resumen_data(df):
     # Guardar el DataFrame en un buffer de bytes

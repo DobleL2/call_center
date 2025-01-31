@@ -456,6 +456,30 @@ def change_processing_rows(request: Change,db:Session = Depends(get_db)):
     return {"message": f"Record {cod_junta} marked as processed successfully."}
 
 
+@router.post("/change_processing_rows_no_contestaron")
+def change_processing_rows_no_contestaron(db: Session = Depends(get_db)):
+    # Marcar el registro como procesado
+    
+    update_query_1 = text("""
+        UPDATE data_processing
+        SET status = 'unprocessed', assigned_to = NULL, assigned_at = NULL, processed_at = NULL
+        WHERE COD_JUNTA IN (SELECT COD_JUNTA FROM mi_tabla_desde_excel WHERE ESTADO = 'NO CONTESTA')
+    """)
+    db.execute(update_query_1)
+    
+    # update_query_2 = text("""
+    #     UPDATE mi_tabla_desde_excel
+    #     SET ESTADO = NULL, OBSERVACION = NULL
+    #     WHERE ESTADO = 'NO CONTESTA'
+    # """)
+    # db.execute(update_query_2)
+    
+    db.commit()
+    
+    return {"message": f"Record marked as unprocessed successfully."}
+
+
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import MetaData, Table, Column, String, Integer, text
 from sqlalchemy.orm import Session
