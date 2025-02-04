@@ -103,17 +103,17 @@ def get_dataset_status_information(db:Session= Depends(get_db)):
 def update_table_excel():
     try:
         # Ruta del archivo Excel
-        excel_path = "app/data/data.xlsx"
+        #excel_path = "app/data/data.xlsx"
 
         # Ruta de la base de datos SQLite
-        sqlite_path = "local_database.sqlite"
+        #sqlite_path = "local_database.sqlite"
 
         # Nombre de la tabla
-        sqlite_table = "mi_tabla_desde_excel"
+        #sqlite_table = "mi_tabla_desde_excel"
 
         # Subir los datos del Excel a SQLite
-        upload_excel_to_sqlite(excel_path, sqlite_path, sqlite_table)
-        return {"response": "Excel uploaded to SQLite"}
+        #upload_excel_to_sqlite(excel_path, sqlite_path, sqlite_table)
+        return {"response": "Endpoint deshabilitado"}
     except Exception as e:
         return {"response": f"An error occurred: {e}"}
 
@@ -230,22 +230,22 @@ from sqlalchemy import inspect
 @router.post("/add_table_from_query/")
 def add_table_from_query(db: Session = Depends(get_db)):
     """
-    Endpoint para crear una nueva tabla en la base de datos a partir de los resultados de una consulta SQL,
-    agregando columnas adicionales de control.
+    Endpoint para agregar datos a la tabla `data_processing` sin eliminarla, 
+    asegurando que no haya duplicados.
     """
-    # Validar nombre de tabla
+
     table_name = 'data_processing'
     query = """
-            SELECT * 
-            FROM data_estrategas
-            WHERE cedula IS NOT NULL 
-                AND num_celular IS NOT NULL
-                AND cod_junta NOT IN (
-                    SELECT COD_JUNTA 
-                    FROM mi_tabla_desde_excel 
-                    WHERE COD_JUNTA IS NOT NULL
-                        AND ESTADO IS NOT NULL
-            );
+        SELECT * 
+        FROM data_estrategas
+        WHERE cedula IS NOT NULL 
+            AND num_celular IS NOT NULL
+            AND cod_junta NOT IN (
+                SELECT cod_junta 
+                FROM mi_tabla_desde_excel 
+                WHERE cod_junta IS NOT NULL
+                    AND estado IS NOT NULL
+        );
     """
 
     if not table_name.isidentifier():
@@ -264,17 +264,11 @@ def add_table_from_query(db: Session = Depends(get_db)):
     if df.empty:
         raise HTTPException(status_code=400, detail="The query returned no data.")
 
-    # Verificar si la tabla ya existe y eliminarla si es necesario
+    # Verificar si la tabla existe
     inspector = inspect(db.get_bind())
-    if table_name in inspector.get_table_names():
-        try:
-            db.execute(text(f"DROP TABLE {table_name}"))
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(status_code=400, detail=f"Error dropping existing table: {e}")
+    table_exists = table_name in inspector.get_table_names()
 
-    # Crear la nueva tabla
+    # Definir la metadata
     metadata = MetaData()
     columns = [
         Column("id", Integer, primary_key=True, autoincrement=True),
@@ -286,26 +280,35 @@ def add_table_from_query(db: Session = Depends(get_db)):
 
     # Agregar dinámicamente columnas basadas en las claves del DataFrame
     for col in df.columns:
-        columns.append(Column(col, String))  # Ajustar tipos según los datos reales
+        columns.append(Column(col, String))  # Ajusta tipos si es necesario
 
-    table = Table(table_name, metadata, *columns)
-    try:
-        metadata.create_all(db.get_bind())
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error creating table: {e}")
+    # Definir la tabla
+    table = Table(table_name, metadata, *columns, extend_existing=True)
 
-    # Insertar datos en la nueva tabla
+    # Si la tabla no existe, la creamos
+    if not table_exists:
+        try:
+            metadata.create_all(db.get_bind())
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error creating table: {e}")
+
+    # Insertar datos evitando duplicados
     try:
         records = df.to_dict(orient="records")
+
         for record in records:
             record["status"] = "unprocessed"  # Configurar estado inicial
-        db.execute(table.insert(), records)
+        
+        # Usar INSERT OR IGNORE para evitar duplicados en SQLite
+        insert_statement = table.insert().prefix_with("OR IGNORE")
+        db.execute(insert_statement, records)
         db.commit()
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error inserting data: {e}")
 
-    return {"message": f"Table '{table_name}' recreated successfully with {len(df)} records."}
+    return {"message": f"Data inserted into '{table_name}' successfully with {len(df)} records (ignoring duplicates)."}
 
 
 
