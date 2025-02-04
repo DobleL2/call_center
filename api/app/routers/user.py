@@ -102,18 +102,18 @@ def get_dataset_status_information(db:Session= Depends(get_db)):
 @router.get("/update_table_excel")
 def update_table_excel():
     try:
-        # Ruta del archivo Excel
-        #excel_path = "app/data/data.xlsx"
+        #Ruta del archivo Excel
+        excel_path = "app/data/data.xlsx"
 
-        # Ruta de la base de datos SQLite
-        #sqlite_path = "local_database.sqlite"
+        #Ruta de la base de datos SQLite
+        sqlite_path = "local_database.sqlite"
 
-        # Nombre de la tabla
-        #sqlite_table = "mi_tabla_desde_excel"
+        #Nombre de la tabla
+        sqlite_table = "mi_tabla_desde_excel"
 
-        # Subir los datos del Excel a SQLite
-        #upload_excel_to_sqlite(excel_path, sqlite_path, sqlite_table)
-        return {"response": "Endpoint deshabilitado"}
+        #Subir los datos del Excel a SQLite
+        upload_excel_to_sqlite(excel_path, sqlite_path, sqlite_table)
+        return {"response": "Tabla from excel updated"}
     except Exception as e:
         return {"response": f"An error occurred: {e}"}
 

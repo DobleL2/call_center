@@ -2,3 +2,4 @@
 .venv
 __pycache__
 .DS_Store
+local_database_backup_04_02_2025.sqlite
