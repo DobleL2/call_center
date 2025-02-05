@@ -86,13 +86,45 @@ def get_dataset_status_information(dataset:str,db:Session= Depends(get_db)):
 @router.get("/dataset_general_information/")
 def get_dataset_status_information(db:Session= Depends(get_db)):
     query = text(f"""
-                WITH cte AS (
-                    SELECT COD_JUNTA, ESTADO,OBSERVACION
-                    FROM mi_tabla_desde_excel
-                )
-                SELECT *
-                FROM data_estrategas d
-                JOIN cte AS c ON c.COD_JUNTA = d.cod_junta
+                    WITH cte AS (
+                        SELECT COD_JUNTA, ESTADO,OBSERVACION
+                        FROM mi_tabla_desde_excel
+                    ),
+                    union_tables AS (
+                        SELECT *
+                        FROM data_estrategas d
+                        JOIN cte AS c ON c.COD_JUNTA = d.cod_junta
+                        WHERE c.ESTADO IS NOT NULL    
+                    ),
+                    tiempos AS (
+                        SELECT processed_at,cod_junta
+                        from data_processing
+                        where processed_at is not null
+                    )
+                    select
+                        u.cod_junta,
+                        id_junta,
+                        provincia,
+                        circunscripcion,
+                        canton,
+                        parroquia,
+                        zona,
+                        recinto,
+                        junta,
+                        sexo,
+                        cedula,
+                        nombres,
+                        apellidos,
+                        correo,
+                        operadora_celular,
+                        num_celular,
+                        referido,
+                        parroquia_direccion,
+                        estado,
+                        observacion,
+                        processed_at
+                    from union_tables u
+                    left JOIN tiempos t on t.cod_junta = u.cod_junta
                  """)
     existing_record = db.execute(query).mappings().fetchall()
     return {
